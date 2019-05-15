@@ -14,15 +14,131 @@ read_downloaded_files <- function(directory) {
     } )
 }
 
-state <- read_downloaded_files('data-raw//downloaded_files//state') %>%
-  bind_rows()
+munge_land_download <- function(x) {
+  x2 <- str_split(x$`Data Item`, fixed(" - "), n=2, simplify=TRUE)
+  x$LandType <- x2[,1]
+  x$Domain <- x2[,2]
+  x$Value <- as.numeric(str_remove(x$Value, fixed(',')))
+  x$`CV (%)` <- as.numeric(x$`CV (%)`)
+  x$High <- (1+(x$`CV (%)`/100))* x$Value
+  x$Low <- (1-(x$`CV (%)`/100))* x$Value
+  x[,c('Commodity', 'Domain Category', 'Data Item')] <- NULL
+  x
+}
+stateLand <- read_downloaded_files('data-raw//downloaded_files//stateLandAreas')
+stateLand[[3]] <- mutate(stateLand[[3]], Value=as.character(Value))
+stateLand <-  bind_rows(stateLand)
+stateLand <- munge_land_download(stateLand) %>%
+  select(-County)
 
-county <- read_downloaded_files('data-raw//downloaded_files//county') %>%
-  bind_rows()
+scLand <- filter(stateLand, State=='SOUTH CAROLINA') %>%
+  select(-State, -`CV (%)`)
 
-usethis::use_data(state)
-usethis::use_data(county)
+scLand %>%
+  select(-High, -Low) %>%
+  spread(LandType, Value) %>%
+  scwateruse::reporTable()
 
+munge_crop_download <- function(x) {
+  x2 <- str_split(x$`Data Item`, fixed(" - "), n=2, simplify=TRUE)
+  x$CropType <- x2[,1]
+  x$Domain <- x2[,2]
+  x$type <- if_else(
+    str_detect(x$CropType, fixed('IRRIGATED')),
+    'Irrigated', 'All')
+  x$CropType <- str_remove(x$CropType, fixed(', IRRIGATED'))
+  x$CommodityComma <- paste0(x$Commodity, ', ')
+  x$CropType <- str_remove(x$CropType, fixed(x$CommodityComma))
+  x$CropType <- str_remove(x$CropType, fixed(x$Commodity))
+  x[,c('Data Item', 'CommodityComma')] <- NULL
+  x$Value <- as.numeric(str_remove(x$Value, fixed(',')))
+  x$`CV (%)` <- as.numeric(x$`CV (%)`)
+  x$High <- (1+(x$`CV (%)`/100))* x$Value
+  x$Low <- (1-(x$`CV (%)`/100))* x$Value
+  x$Crop <- x$Commodity
+  x$Commodity <- NULL
+  x
+}
+
+stateCrop <- read_downloaded_files('data-raw//downloaded_files//stateCropAreas') %>%
+  bind_rows() %>% munge_crop_download() %>% select(-County)
+
+countyCrop <- read_downloaded_files('data-raw//downloaded_files//countyCropAreas') %>%
+  bind_rows() %>% munge_crop_download()
+
+countyAcres <- filter(countyCrop, Domain=='ACRES HARVESTED') %>%
+  select(-Domain, -`Domain Category`) %>%
+  rename(Acres=Value)
+
+countyFarms <- filter(countyCrop, Domain=='OPERATIONS WITH AREA HARVESTED') %>%
+  select(-Domain) %>%
+  rename(Farms=Value)
+
+# rm(county)
+
+stateAcres <- filter(stateCrop, Domain=='ACRES HARVESTED') %>%
+  # select(-Domain, -`Domain Category`) %>%
+  rename(Acres=Value)
+
+stateFarms <- filter(stateCrop, Domain=='OPERATIONS WITH AREA HARVESTED') %>%
+  select(-Domain) %>%
+  rename(Farms=Value)
+
+# rm(state)
+
+state5 <- stateAcres %>%
+  filter(State=='SOUTH CAROLINA') %>%
+  filter(!str_detect(CropType, fixed('CROP'))) %>%
+  filter((Crop == 'CORN' & CropType == 'GRAIN') |
+           (Crop == 'COTTON' & CropType == 'UPLAND') |
+           (Crop == 'WHEAT' & CropType == 'WINTER') |
+           (Crop %in% c('PEANUTS', 'SOYBEANS'))) %>%
+           # (Crop %in% c('COTTON', 'WHEAT', 'PEANUTS', 'SOYBEANS'))) %>%
+  filter(`Domain Category`=='NOT SPECIFIED')
+
+ggplot(state5, aes(x=Year, y=Acres/1000, linetype=type)) +
+  geom_ribbon(aes(ymin=Low/1000, ymax=High/1000), alpha=.3) +
+  geom_line() +
+  facet_wrap("Crop") +
+  scale_y_continuous(name='Acres (thousands)',
+                   labels=scales::comma_format())
+
+
+state5 %>%
+  group_by(Year, type) %>%
+  summarise(Acres = sum(Acres, na.rm=T)) %>%
+  spread(type, Acres) %>%
+  scwateruse::reporTable()
+
+x <- countyAcres %>%
+  filter(State=='SOUTH CAROLINA') %>%
+  filter((Crop == 'CORN' & CropType == 'GRAIN') |
+           (Crop %in% c('COTTON', 'PEANUTS', 'SOYBEANS', 'WHEAT'))) %>%
+  group_by(Year, type) %>%
+  summarise(Acres=sum(Acres, na.rm=T))
+
+## corn for grain, cotton, peanuts, soybeans, wheat
+
+
+#usethis::use_data(state, overwrite=TRUE)
+usethis::use_data(countyArea, overwrite=TRUE)
+usethis::use_data(countyFarms, overwrite=TRUE)
+
+
+
+s2 <- str_split(state$`Data Item`, fixed(" - "), n=2, simplify=TRUE)
+unique(s2[,2])
+
+
+
+
+x <- filter(state, State=='SOUTH CAROLINA') %>%
+  filter(Domain=='TOTAL') %>%
+  Value=as.numeric(Value) %>%
+  group_by()
+
+
+############## Old Script #################
 ## The Census of Agriculture
 coa10 <- read_excel("data-raw//CensusOfAg_Table10.xls", na="(D)")
 coa10[coa10 == '-'] <- NA
@@ -157,7 +273,7 @@ FRIS36 <- bind_rows(
 
 # rm(FRISdataFolder, FRISdata, FRIS25, FRIS26, FRIS27, FRIS35, FRIS36)
 
-setwd('Planning_Input//Agriculture')
+# setwd('Planning_Input//Agriculture')
 write_excel_csv(FRIS25, "Barriers to investment.csv")
 write_excel_csv(FRIS26, "Irrigation by source.csv")
 write_excel_csv(FRIS27, "Change in irrigation.csv")

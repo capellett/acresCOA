@@ -18,6 +18,31 @@ knitr::opts_chunk$set(
 
 
 Using the NASS QuickStats tool, input:
+
+## For Land numbers
+Program = Census
+Sector = Economics
+Group = Farms & Land & Assets
+Commodity = Ag Land
+
+Data Items = 
+Ag Land - Acres
+Ag Land - Number of Operations
+Ag Land, Cropland - Acres
+Ag Land, Cropland - Number of Operations
+Ag Land, Cropland, Harvested - Acres
+Ag Land, Cropland, Harvested - Number of Operations
+Ag Land, Cropland, Harvested, Irrigated - Acres
+Ag Land, Cropland, Harvested, Irrigated - Number of Operations
+Ag Land, Irrigated - Acres
+Ag Land, Irrigated - Number of Operations
+
+Domain = Total
+
+Geographic Level = County / State
+
+
+## For Crop numbers 
 Program = Census
 Sector = Crops
 Group = Field Crops

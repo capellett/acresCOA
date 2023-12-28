@@ -1,33 +1,37 @@
 library(tidyverse)
 library(acresCOA)
 
+### I'm not sure this part is necessary
 
-countyIrrigation_old <-  countyIrrigation
-cropIrrigation_old <-  cropIrrigation
+# countyIrrigation_old <-  countyIrrigation
+# cropIrrigation_old <-  cropIrrigation
+#
+# ## Cropland, harvested, irrigated
+# ### state-wide
+# stateLand_old <- stateLand
+#
+# stateLand <- read_downloaded_files('data-raw//downloaded_files//stateLandAreas')
+# stateLand[[3]] <- mutate(stateLand[[3]], Value=as.character(Value))
+# stateLand[[4]] <- mutate(stateLand[[4]], Value=as.character(Value))
+# stateLand <-  bind_rows(stateLand)
+# stateLand <- munge_land_download(stateLand) %>%
+#   select(-County)
+# stateLand <- unique(stateLand)
+#
+# usethis::use_data(stateLand, overwrite = TRUE)
+#
+# ### county-wide
+# countyLand_old <-  countyLand
+#
+# countyLand <- read_downloaded_files('data-raw//downloaded_files//countyLandAreas')
+# countyLand <- bind_rows(countyLand)
+# countyLand <- munge_land_download(countyLand)
+# countyLand <- unique(countyLand)
+#
+# usethis::use_data(countyLand, overwrite=TRUE)
 
-## Cropland, harvested, irrigated
-### state-wide
-stateLand_old <- stateLand
 
-stateLand <- read_downloaded_files('data-raw//downloaded_files//stateLandAreas')
-stateLand[[3]] <- mutate(stateLand[[3]], Value=as.character(Value))
-stateLand[[4]] <- mutate(stateLand[[4]], Value=as.character(Value))
-stateLand <-  bind_rows(stateLand)
-stateLand <- munge_land_download(stateLand) %>%
-  select(-County)
-stateLand <- unique(stateLand)
 
-usethis::use_data(stateLand, overwrite = TRUE)
-
-### county-wide
-countyLand_old <-  countyLand
-
-countyLand <- read_downloaded_files('data-raw//downloaded_files//countyLandAreas')
-countyLand <- bind_rows(countyLand)
-countyLand <- munge_land_download(countyLand)
-countyLand <- unique(countyLand)
-
-usethis::use_data(countyLand, overwrite=TRUE)
 
 ## Field crops
 
@@ -45,7 +49,7 @@ stateFieldCrop %>%
 
 stateFieldCrop %>%
   group_by(Year) %>%
-  summarise(Domain = paste0(unique(Domain), collapse='; ')) %>% scwateruse::reporTable()
+  summarise(Domain = paste0(unique(Domain), collapse='; '))
 
 #### This seems to work
 x <- stateFieldCrop %>%
@@ -80,8 +84,7 @@ countyFieldCrop %>%
 
 countyFieldCrop %>%
   group_by(Year) %>%
-  summarise(Domain = paste0(unique(Domain), collapse='; ')) %>%
-  scwateruse::reporTable()
+  summarise(Domain = paste0(unique(Domain), collapse='; '))
 
 countyFieldCrop <- countyFieldCrop %>%
   dplyr::filter(Domain == 'TOTAL') %>%
@@ -159,7 +162,7 @@ x2 %>%
     `Domain Category` = as_factor(`Domain Category`)) %>%
   .[,c("Commodity", "Data Item", "Domain", "Domain Category")] %>%
   unique() %>%
-  scwateruse::reporTable()
+  scutils::reporTable()
 
 # scLand <- filter(stateLand, State=='SOUTH CAROLINA') %>%
 #   select(-State, -`CV (%)`)

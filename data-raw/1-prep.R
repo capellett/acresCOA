@@ -4,7 +4,8 @@ source('R/readin.R')
 
 ### Cropland, harvested, irrigated
 stateLand <- read_downloaded_files('data-raw//downloaded_files//stateLandAreas')
-stateLand[[3]] <- mutate(stateLand[[3]], Value=as.character(Value))
+stateLand <- lapply(stateLand, function(x) dplyr::mutate(x, Value = as.character(Value)))
+# stateLand[[3]] <- mutate(stateLand[[3]], Value=as.character(Value))
 stateLand <-  bind_rows(stateLand)
 stateLand <- munge_land_download(stateLand) %>%
   select(-County)
@@ -15,32 +16,43 @@ countyLand <- bind_rows(countyLand)
 countyLand <- munge_land_download(countyLand)
 usethis::use_data(countyLand, overwrite=TRUE)
 
-### Field crops
-stateFieldCrop <- read_downloaded_files('data-raw//downloaded_files//stateCropAreas') %>%
-  bind_rows() %>% munge_crop_download() %>% select(-County)
-
-countyFieldCrop <- read_downloaded_files('data-raw//downloaded_files//countyCropAreas') %>%
-  bind_rows() %>% munge_crop_download()
-
-countyFieldCropAcres <- filter(countyCrop, Domain=='ACRES HARVESTED') %>%
-  select(-Domain, -`Domain Category`) %>%
-  rename(Acres=Value)
-
-countyFieldCropFarms <- filter(countyCrop, Domain=='OPERATIONS WITH AREA HARVESTED') %>%
-  select(-Domain) %>%
-  rename(Farms=Value)
-
-stateFieldCropAcres <- filter(stateCrop, Domain=='ACRES HARVESTED') %>%
-  # select(-Domain, -`Domain Category`) %>%
-  rename(Acres=Value)
-
-stateFieldCropFarms <- filter(stateCrop, Domain=='OPERATIONS WITH AREA HARVESTED') %>%
-  select(-Domain) %>%
-  rename(Farms=Value)
 
 
-usethis::use_data(countyArea, overwrite=TRUE)
-usethis::use_data(countyFarms, overwrite=TRUE)
+### This section doesn't work. I think it is superseded by the "update.R" script.
+
+# ### Field crops
+# stateFieldCrop <- read_downloaded_files('data-raw//downloaded_files//stateCropAreas') %>%
+#   bind_rows() %>% munge_crop_download() # %>% select(-County)
+#
+# countyFieldCrop <- read_downloaded_files('data-raw//downloaded_files//countyCropAreas') %>%
+#   bind_rows() %>% munge_crop_download()
+#
+# countyFieldCropAcres <- filter(countyCrop, Domain=='ACRES HARVESTED') %>%
+#   select(-Domain, -`Domain Category`) %>%
+#   rename(Acres=Value)
+#
+# countyFieldCropFarms <- filter(countyCrop, Domain=='OPERATIONS WITH AREA HARVESTED') %>%
+#   select(-Domain) %>%
+#   rename(Farms=Value)
+#
+# stateFieldCropAcres <- filter(stateCrop, Domain=='ACRES HARVESTED') %>%
+#   # select(-Domain, -`Domain Category`) %>%
+#   rename(Acres=Value)
+#
+# stateFieldCropFarms <- filter(stateCrop, Domain=='OPERATIONS WITH AREA HARVESTED') %>%
+#   select(-Domain) %>%
+#   rename(Farms=Value)
+#
+#
+# usethis::use_data(countyArea, overwrite=TRUE)
+# usethis::use_data(countyFarms, overwrite=TRUE)
+
+
+
+
+
+
+##### This is older and likely irrelevant.
 
 # scLand <- filter(stateLand, State=='SOUTH CAROLINA') %>%
 #   select(-State, -`CV (%)`)

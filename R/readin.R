@@ -17,8 +17,9 @@ munge_land_download <- function(x) {
   x$Domain <- x2[,2]
   x$Value <- as.numeric(str_remove(x$Value, fixed(',')))
   x$`CV (%)` <- as.numeric(x$`CV (%)`)
-  x$High <- (1+(x$`CV (%)`/100))* x$Value
-  x$Low <- (1-(x$`CV (%)`/100))* x$Value
+  x$SE <- (x$`CV (%)`/100)* x$Value
+  x$High <- x$Value + (x$SE*2)
+  x$Low <- x$Value - (x$SE*2)
   x[,c('Commodity', 'Domain Category', 'Data Item')] <- NULL
   x
 }
@@ -37,8 +38,9 @@ munge_crop_download <- function(x) {
   x[,c('Data Item', 'CommodityComma')] <- NULL
   x$Value <- as.numeric(str_remove(x$Value, fixed(',')))
   x$`CV (%)` <- as.numeric(x$`CV (%)`)
-  x$High <- (1+(x$`CV (%)`/100))* x$Value
-  x$Low <- (1-(x$`CV (%)`/100))* x$Value
+  x$SE <- (x$`CV (%)`/100)* x$Value
+  x$High <- x$Value + (x$SE*2)
+  x$Low <- x$Value - (x$SE*2)
   x$Crop <- x$Commodity
   x$Commodity <- NULL
   x

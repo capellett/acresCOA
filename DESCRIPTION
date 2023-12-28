@@ -2,10 +2,10 @@ Package: acresCOA
 Type: Package
 Title: Acreage data from the United States Census of Agriculture
 Version: 0.1.0
-Author: C A Pellett
-Maintainer: <c.alex.pellett@gmail.com>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Authors@R:
+        person("C A", "Pellett", , "c.alex.pellett@gmail.com", role = c("aut", "cre"))
+Description: Data from the United States Census of Agriculture.
+    Includes total and irrigated acreage at the state and county level.
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
